@@ -1,0 +1,51 @@
+default:
+  type: postgres
+  host: localhost
+  port: 5432
+  dbname: postgres
+  user: postgres
+  password: postgres
+
+postgres:
+  type: postgres
+  host: localhost
+  port: 5432
+  dbname: postgres
+  user: postgres
+  password: postgres
+
+mysql:
+  type: mysql
+  host: localhost
+  port: 3306
+  dbname: mysql
+  user: root
+  password: mysqlroot
+
+redshift_serverless:
+  type: redshift_serverless
+  region: ap-northeast-1
+  profile: default
+  host: redshift-workgroup
+  dbname: dev
+  bucket_name: redshift-load-bucket-001
+  object_key: csv_load/data.csv
+  iam_role: arn:aws:iam::xxxxxxxxxxxx:role/redshift-load-role
+
+redshift:
+  type: redshift
+  region: ap-northeast-1
+  profile: default
+  host: redshift-cluster
+  dbname: dev
+  bucket_name: redshift-load-bucket-001
+  object_key: csv_load/data.csv
+  iam_role: arn:aws:iam::xxxxxxxxxxxx:role/redshift-load-role
+
+dynamodb:
+  type: dynamodb
+  region: ap-northeast-1
+  profile: default
+  bucket_name: dynamodb-load-bucket-001
+  object_key: json_load/data.json
+  source_table: products_source

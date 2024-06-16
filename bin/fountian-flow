@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# スクリプトが存在するディレクトリの絶対パスを取得
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Function definitions
+function run_app {
+    python "${BASEDIR}/../src/app.py" "$@"
+}
+
+function create_def {
+    # Remove the first argument 'create-def'
+    shift
+    # Create an array to hold the absolute paths
+    local abs_paths=()
+    for path in "$@"; do
+        # Convert each relative path to an absolute path
+        abs_paths+=("$(realpath "$path")")
+    done
+    # Pass the absolute paths to the Python script
+    python "${BASEDIR}/../tools/create-def/app.py" "${abs_paths[@]}"
+}
+
+# Command line handling
+case "$1" in
+    run)
+        shift  # Remove the first argument 'run'
+        run_app "$@"
+        ;;
+    create-def)
+        create_def "$@"
+        ;;
+    show-def)
+        show_def
+        ;;
+    -help)
+        echo "Usage:"
+        echo "  fountain-flow run [--env [environment]] - Run the main application optionally in a specified environment"
+        echo "  fountain-flow create-def [ddl paths...] - Execute DDL scripts to create definitions"
+        echo "  fountain-flow -help - Display this help message"
+        ;;
+    *)
+        echo "Error: Invalid command or arguments"
+        echo "Try 'fountain-flow -help' for more information."
+        ;;
+esac

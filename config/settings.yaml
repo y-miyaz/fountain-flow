@@ -1,0 +1,16 @@
+settings:
+  data_generation:
+    method: csv              # Method of data generation: 'database' or 'csv' or 'json'
+    database:
+      batch_size: 10000      # Batch insert size for the database
+      commit_interval: 100   # Interval for committing transactions (in milliseconds)
+    csv:
+      file_path: data        # Output directory for the CSV file
+      delimiter: ','         # Delimiter character for the CSV
+      include_headers: false # Whether to include headers in the CSV file
+      batch_size: 100000     # Batch write size for the CSV file
+    json:
+      file_path: data        # Output directory for the JSON file
+      batch_size: 100000     # Batch write size for the JSON file
+  logging:
+    level: INFO              # Logging level: DEBUG, INFO, WARNING, ERROR

@@ -1,0 +1,20 @@
+smallint: integer
+int: integer
+bigint: integer
+numeric: float
+real: float
+double precision: float
+decimal: float
+smallserial: integer
+serial: integer
+bigserial: integer
+varchar: string
+char: string
+text: string
+timestamp: timestamp
+timestamp with time zone: timestamp
+date: timestamp
+time: timestamp
+time with time zone: timestamp
+interval: timestamp
+boolean: boolean

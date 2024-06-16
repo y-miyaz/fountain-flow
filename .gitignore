@@ -1,0 +1,5 @@
+.DS_Store
+.venv
+data/
+tmp/
+**/__pycache__/**

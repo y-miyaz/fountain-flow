@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create IAM role and policy for Redshift Data API and S3 access.
+
+Parameters:
+  S3BucketName:
+    Description: The name of the S3 bucket to be accessed.
+    Type: String
+
+Resources:
+  PGFountainRedshiftLoadPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties: 
+      PolicyName: "pgfountain-redshift-load-policy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: 
+              - "redshift-data:ExecuteStatement"
+              - "redshift-data:DescribeStatement"
+              - "redshift-data:GetStatementResult"
+              - "redshift-data:ListStatements"
+              - "redshift-data:BatchExecuteStatement"
+            Resource: "*"
+          - Effect: "Allow"
+            Action: 
+              - "s3:GetObject"
+              - "s3:ListBucket"
+            Resource: 
+              - !Sub "arn:aws:s3:::${S3BucketName}"
+              - !Sub "arn:aws:s3:::${S3BucketName}/*"
+      Roles: 
+        - !Ref PGFountainRedshiftLoadRole
+
+  PGFountainRedshiftLoadRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "pgfountain-redshift-load-role"
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "redshift.amazonaws.com"
+            Action: "sts:AssumeRole"
