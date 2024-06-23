@@ -50,56 +50,6 @@ tables:
           method: sequence
           start: 1
 
-- name: products2
-  row_count: 10000
-  columns:
-  - name: product_id
-    type: integer
-    generation:
-      method: sequence
-      start: 1
-  - name: product_type
-    type: string
-    generation:
-      method: sequence
-  - name: value
-    type: float
-    generation:
-      method: random
-      start: 0.0
-      end: 10000.0
-  - name: is_fragile
-    type: integer
-    generation:
-      method: sequence
-      values: [0, 1]
-  - name: created_at
-    type: timestamp
-    generation:
-      method: sequence
-      start: '2020-01-01 00:00:00'
-      end: '2020-02-01 23:59:59'
-      interval: 60
-  - name: options
-    type: json
-    struct:
-      - name: name
-        type: string
-        generation:
-          method: sequence
-          values: ["sample01", "sample02", "sample03"]
-      - name: place_id
-        type: integer
-        generation:
-          method: sequence
-          start: 1
-      - name: places
-        type: list
-        size: 10
-        inner_type: integer
-        generation:
-          method: sequence
-          start: 1
 
 
 

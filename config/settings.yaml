@@ -7,7 +7,7 @@ settings:
     csv:
       file_path: data        # Output directory for the CSV file
       delimiter: ','         # Delimiter character for the CSV
-      include_headers: false # Whether to include headers in the CSV file
+      include_headers: true # Whether to include headers in the CSV file
       batch_size: 100000     # Batch write size for the CSV file
     json:
       file_path: data        # Output directory for the JSON file

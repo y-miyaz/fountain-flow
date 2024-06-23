@@ -77,15 +77,18 @@ class RedshiftConnector(DBConnector):
         try:
             # S3にファイルをアップロード
             bucket_name = self.config['bucket_name']
-            s3_key = self.config['object_key']
-            self.s3_client.upload_file(file_path, bucket_name, s3_key)
+            object_key = self.config['object_key']
+            iam_role = self.config['iam_role']
+            s3_uri = f's3://{bucket_name}/{object_key}'
+            self.s3_client.upload_file(file_path, bucket_name, object_key)
+
             logging.info(
-                f"Successfully uploaded {file_path} to s3://{bucket_name}/{s3_key}")
+                f"Successfully uploaded {file_path} to {s3_uri}")
 
             if include_headers:
-                sql = f"COPY {table_name} FROM 's3://{bucket_name}/{s3_key}' IAM_ROLE '{self.config['iam_role']}' CSV IGNOREHEADER as 1"
+                sql = f"COPY {table_name} FROM '{s3_uri}' IAM_ROLE '{iam_role}' CSV IGNOREHEADER as 1"
             else:
-                sql = f"COPY {table_name} FROM 's3://{bucket_name}/{s3_key}' IAM_ROLE '{self.config['iam_role']}' CSV"
+                sql = f"COPY {table_name} FROM '{s3_uri}' IAM_ROLE '{iam_role}' CSV"
 
             # S3からRedshiftにデータをコピー
             response = self.redshift_client.execute_statement(
@@ -95,7 +98,7 @@ class RedshiftConnector(DBConnector):
             )
             self._check_status(response['Id'])
             logging.info(
-                f"Successfully loaded s3://{bucket_name}/{s3_key} to {table_name}")
+                f"Successfully loaded {s3_uri} to {table_name}")
         except Exception:
             logging.exception(
                 f"Failed to copy data from CSV file to table '{table_name}'.")
