@@ -1,6 +1,8 @@
-## ⛲ 概要 ⛲
+## **FOUNTAIN-FLOW**
+### **Tool For Generating large datasets for performance testing**
+![](https://i.imgur.com/jDcmy4R.jpeg)
 
-`fountain-flow`は負荷試験向けのデータ生成ツールです。簡単な操作で、設定したルールに従ったデータの大量生成、DBへのデータ投入が可能です。
+`fountain-flow`は負荷試験向けのデータ生成ツールです。自身で設定したデータ生成ルールに従い、データの大量生成からDBへのデータ投入までの機能を一気通貫で提供します。
 
 ### ユースケース
 `fountain-flow`は以下のようなケースでの利用を想定しています。
@@ -10,46 +12,47 @@
 - DBのスケーラビリティテスト
 - プロトタイプ・製品のデモンストレーション
 
-:warning:`fountain-flow`はDBの破壊的操作が可能なため、稼働中の本番環境への利用は推奨しません。
+:warning:`fountain-flow`はDBの破壊的操作を含むため、稼働中の本番環境への利用は推奨しません。
 
 ### 基本機能
 `fountain-flow`は以下の機能を提供します。
 
 - データ生成定義からのDBへの直接データ投入
-- データ生成定義からのCSVファイル, jsonファイル出力
-- CSV ファイル, jsonファイルからのデータロード
+- データ生成定義からのCSVファイル, JSONファイル出力
+- CSVファイル, jsonファイルからのデータロード
 
 ## 動作要件
 
-:warning:`fountain-flow`は進行中のプロジェクトです。変更が行われる可能性があります.
+:warning:`fountain-flow`は進行中のプロジェクトです。動作要件は変更が行われる可能性があります.
 
 ### 動作環境
 
 - Python 3.12 (tested under Python 3.12.3)
 - pip (tested under pip 24.0)
 
-### 対応する DB
+### 対応DB
+`fountain-flow`は主にAWSのデータベースに対応しています。
 
-| データベース               | CSV 対応 | INSERT コマンド対応 |
-| -------------------------- | -------- | ------------------- |
-| Postgres                   | ○        | ○                   |
-| Mysql                      | ○        | ○                   |
-| Oracle Database            | ☓        | ☓                   |
-| Microsoft SQL Server       | ☓        | ☓                   |
-| MariaDB                    | ☓        | ☓                   |
-| Amazon RDS                 | ○        | ○                   |
-| Amazon RDS serverless      | ○        | ○                   |
-| Amazon Redshift            | ○        | ○                   |
-| Amazon Redshift Serverless | ○        | ○                   |
-| Cassandra                  | ☓        | ☓                   |
-| MongoDB                    | ☓        | ☓                   |
-| Amazon Dynamo DB           | ○        | ○                   |
-| Amazon Neptune             | ☓        | ☓                   |
-| Snowflake                  | ☓        | ☓                   |
-| IBM Db2                    | ☓        | ☓                   |
-| Google BigQuery            | ☓        | ☓                   |
-| Apache Hive                | ☓        | ☓                   |
-| SQLite                     | ☓        | ☓                   |
+| データベース               | CSV出力・ロード | JSON出力・ロード |INSERT |
+| -------------------------- | -------- | -------- | ------------------- |
+| Postgres                   | ○        | ☓        | ○                   |
+| Mysql                      | ○        | ☓       | ○                   |
+| Oracle Database            | ☓       | ☓        | ☓                   |
+| Microsoft SQL Server       | ☓       | ☓        | ☓                   |
+| MariaDB                    | ☓       | ☓        | ☓                   |
+| Amazon RDS                 | ○        | ☓        | ☓                   |
+| Amazon RDS serverless      | ○        | ☓        | ☓                   |
+| Amazon Redshift            | ○        | ☓        | ○                   |
+| Amazon Redshift Serverless | ○        | ☓        | ○                   |
+| Cassandra                  | ☓       | ☓        | ☓                   |
+| MongoDB                    | ☓       | ○        | ☓                   |
+| Amazon Dynamo DB           | ☓        | ○        | ○                   |
+| Amazon Neptune             | ☓       | ☓        | ☓                   |
+| Snowflake                  | ☓       | ☓        | ☓                   |
+| IBM Db2                    | ☓       | ☓        | ☓                   |
+| Google BigQuery            | ☓       | ☓        | ☓                   |
+| Apache Hive                | ☓       | ☓        | ☓                   |
+| SQLite                     | ☓       | ☓        | ☓                   |
 
 ## パッケージインストール
 
@@ -63,15 +66,44 @@ pip install -r requirements.txt
 ## アプリケーションの実行
 
 アプリケーションを実行するためには、以下のコマンドを実行します。
-環境情報は database.yaml で設定します。
 
 ```sh
 # fountain-flowを実行する
-# 環境を指定して実行する場合（例: mysql環境で実行）
-bin/fountain-flow run --env mysql
+bin/fountain-flow cli
+```
 
-# 環境を指定せずに実行する場合 (default環境)
-bin/fountain-flow run
+database.yamlで定義した接続環境を選択します。
+
+
+```sh
+[?] 接続環境を選んでください(database.yaml): 
+ > default
+   postgres
+   mysql
+   rds
+   redshift_serverless
+   redshift
+   dynamodb
+```
+
+実行したい処理を選択します。
+| 処理名               | 説明
+| -------------------------- | -------- |
+| Truncate Table                   | 対象のテーブルをTRUNCATEします。        |
+| Generate Data & Insert Records                      | データ生成とデータのINSERTを行います。        |
+| Generate Data & File Output            | データ生成とファイル出力を行います。       |
+| Load File       | 対象のテーブルに対してファイルをロードします。       |
+| Switch Env                    | 接続環境を切り替えます。       |
+| Exit                 | CLIを終了します。        |
+
+```sh
+[?] 選択肢を選んでください(env=postgres): 
+ > Truncate Table
+   Generate Data & Insert Records
+   Generate Data & File Output
+   Load File
+   Switch Env
+   Exit
 ```
 
 ## 定義(data.yaml)の生成
@@ -96,7 +128,7 @@ bin/fountain-flow -help
 - **ファイルパス**:
   - `config/database.yaml`
   - `config/settings.yaml`
-  - `definition/data.yaml`
+  - `def/data.yaml`
 
 以下に、 `database.yaml`, `settings.yaml`, `data.yaml` のファイルの構造と使用方法について説明します。
 
@@ -122,6 +154,7 @@ database.yaml では`fountain-flow`の接続先のデータベースの設定を
   - **`bucket_name`**: CSV ロードの際に CSV ファイルをアップロードする S3 バケット名を指定します。`rds`, `redshift`, `redshift_serverless`, `dynamodb`のみ。
   - **`object_key`**: CSV ロードの際にアップロードするオブジェクトキーを指定します。`rds`, `redshift`, `redshift_serverless`, `dynamodb`のみ。
   - **`iam_role`**: CSV ロードの際に使用する IAM ロールを指定します。`redshift`, `redshift_serverless`のみ。あらかじめ接続先の Redshift に IAM ロールを関連付ける必要あり。
+  - **`secret_arn`**: DBに接続する認証情報を指定します。`rds`のみ。
 
 | 項目名      | 説明                                                                   | postgres | mysql | rds | redshift | redshift_serverless | dynamodb |
 | ----------- | ---------------------------------------------------------------------- | -------- | ----- | --- | -------- | ------------------- | -------- |
@@ -135,6 +168,7 @@ database.yaml では`fountain-flow`の接続先のデータベースの設定を
 | bucket_name | CSV ファイルをアップロードする S3 バケット名          | ☓        | ☓     | ◯   | ◯        | ◯                   | ◯        |
 | object_key  | CSVアップロードするオブジェクトキー                       | ☓        | ☓     | ◯   | ◯        | ◯                   | ◯        |
 | iam_role    | CSV ロードの際に使用する IAM ロール                                    | ☓        | ☓     | ☓   | ◯        | ◯                   | ☓        |
+| secret_arn    | DB接続に使用する認証情報                                    | ☓        | ☓     | ◯   | ☓        | ☓                   | ☓        |
 
 ### 注意事項
 
@@ -152,15 +186,6 @@ database.yaml では`fountain-flow`の接続先のデータベースの設定を
 
 - `default`: デフォルト設定(必須)。
 - その他任意の環境の設定が可能です
-
-### データベースの切り替え方法
-
-アプリケーション起動時のオプション`--env`で、環境を指定することにより、接続データベースを切り替えることができます。オプションを設定しない場合は`defalut`の設定が適用されます。
-
-```sh
-# run fountain-flow with option
-python app.py --env mysql
-```
 
 ### 設定例
 
@@ -189,6 +214,17 @@ mysql:
   user: root
   password: mysqlroot
 
+rds:
+  type: rds
+  region: ap-northeast-1
+  profile: default
+  host: arn:aws:rds:ap-northeast-1:xxxxxxxxxxxx:cluster:database-1
+  dbname: postgres
+  secret_arn: arn:aws:secretsmanager:ap-northeast-1:xxxxxxxxxxxx:secret:rds-db-credentials/cluster-xxxxxxxxxxxxpostgres/xxxxxxxxxxxx
+  bucket_name: redshift-load-bucket-001
+  object_key: csv_load/data.csv
+  iam_role: arn:aws:iam::xxxxxxxxxxxx:role/rds-csv-load-role
+
 redshift_serverless:
   type: redshift_serverless
   region: ap-northeast-1
@@ -213,9 +249,10 @@ dynamodb:
   type: dynamodb
   region: ap-northeast-1
   profile: default
-  bucket_name: dynamodb-load-bucket-001
+  bucket_name: dynamodb-xxxxxxxxxxxx-load-bucket-001
   object_key: json_load/data.json
   source_table: products_source
+
 ```
 
 ## `settings.yaml`
@@ -226,18 +263,14 @@ settings.yaml ではアプリケーションのデータ生成とログ出力の
 
 ### 設定ファイルの項目
 
-- **`method`**: データ生成モード（必須）。選択肢は`database`, `csv`, `json`です。`json`は`dynamodb`のみで使用できます。
-  `database`は生成したデータを INSERT で直接データベースに挿入します。`csv`は指定したフォルダに csv ファイルとしてデータを生成します。`json`は指定したフォルダに jsonl 形式のファイルとしてデータを生成します。また、続けて生成した csv ファイル, json ファイルからデータベースにデータをロードすることも可能です。
-- **`database`**: データベースモードのデータ生成設定。
+- **`database`**: INSERTモードのデータ生成設定。
   - **`batch_size`**: 1 度にコミットするレコードの数。デフォルトは`100`。
   - **`commit_interval`**: トランザクションをコミットする時間間隔（msec）。デフォルトは`100`。
-- **`csv`**: CSV モードのデータ生成設定。
-  - **`file_path`**: CSV ファイルが出力されるディレクトリ。app.py があるフォルダを起点に相対パスを指定します。デフォルトは`data`。
+- **`csv`**: CSVモードのデータ生成設定。
   - **`delimiter`**: CSV ファイル内の区切り文字。デフォルトは`,`。
   - **`include_headers`**: CSV ファイルに列ヘッダーを含めるかどうかを指定します。必要な場合は`true`、不要な場合は`false`を設定します。デフォルトは`true`。
   - **`batch_size`**: CSV ファイルに 1 度に書き込むレコード数。デフォルトは`100000`。
-- **`json`**: JSON モードのデータ生成設定。
-  - **`file_path`**: JSON ファイルが出力されるディレクトリ。app.py があるフォルダを起点に相対パスを指定します。デフォルトは`data`。
+- **`json`**: JSONモードのデータ生成設定。
   - **`batch_size`**: JSON ファイルに 1 度に書き込むレコード数。デフォルトは`100000`。
 - **`level`**: ログレベルの設定で、「DEBUG」、「INFO」、「WARNING」、「ERROR」のいずれかを設定できます。デフォルトは`INFO`。
 
@@ -246,7 +279,6 @@ settings.yaml ではアプリケーションのデータ生成とログ出力の
 ```yaml
 settings:
   data_generation:
-    method: database
     database:
       batch_size: 10000
       commit_interval: 100

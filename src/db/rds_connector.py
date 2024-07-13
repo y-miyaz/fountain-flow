@@ -71,7 +71,10 @@ class RDSConnector(DBConnector):
             raise
 
     def insert_data(self, table_name, columns, data):
+        # TOBE
+        """
         try:
+
             #sql = f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join([':' + col for col in columns])})"
             #parameters = [{'name': col, 'value': {'stringValue': str(val)}} for col, val in zip(columns, data)]
             data = ["'" + str(item) + "'" for item in data]
@@ -83,6 +86,10 @@ class RDSConnector(DBConnector):
             logging.exception(
                 f"Failed to insert data into table '{table_name}'.")
             raise
+        """
+        logging.info(
+            "fountain-flow does not implement insert data for RDS.")
+        raise NotImplementedError
 
     def copy_data_from_csv(self, table_name, file_path, include_headers):
         try:
@@ -104,7 +111,7 @@ class RDSConnector(DBConnector):
                '{self.region}'
             );
             """
-            print(sql)
+
             if include_headers:
                 sql = sql.replace("(format csv)", "(format csv, header)")
 

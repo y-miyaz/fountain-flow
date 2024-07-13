@@ -11,13 +11,14 @@ class PGConnector(DBConnector):
 
     def connect(self):
         try:
-            self.connection = psycopg2.connect(
-                host=self.config['host'],
-                port=self.config['port'],
-                dbname=self.config['dbname'],
-                user=self.config['user'],
-                password=self.config['password']
-            )
+            if not self.connection or self.connection.closed != 0:
+                self.connection = psycopg2.connect(
+                    host=self.config['host'],
+                    port=self.config['port'],
+                    dbname=self.config['dbname'],
+                    user=self.config['user'],
+                    password=self.config['password']
+                )
         except Exception:
             logging.exception("Failed to connect to database.")
             raise
@@ -35,6 +36,7 @@ class PGConnector(DBConnector):
     def get_foreign_key_values(self, table_name, key_name):
         """指定したテーブルからキーのリストを取得"""
         try:
+            self.connect()
             cursor = self.connection.cursor()
             cursor.execute(f'SELECT DISTINCT {key_name} FROM {table_name}')
             keys = cursor.fetchall()
@@ -47,8 +49,9 @@ class PGConnector(DBConnector):
             cursor.close()
 
     def truncate_table(self, table_name):
-        cursor = self.connection.cursor()
         try:
+            self.connect()
+            cursor = self.connection.cursor()
             cursor.execute(
                 f'TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;')
             self.connection.commit()
@@ -62,8 +65,9 @@ class PGConnector(DBConnector):
             cursor.close()
 
     def insert_data(self, table_name, columns, data):
-        cursor = self.connection.cursor()
         try:
+            self.connect()
+            cursor = self.connection.cursor()
             cursor.execute(
                 f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))})",
                 tuple(data)
@@ -76,8 +80,9 @@ class PGConnector(DBConnector):
             cursor.close()
 
     def copy_data_from_csv(self, table_name, file_path, include_headers):
-        cursor = self.connection.cursor()
         try:
+            self.connect()
+            cursor = self.connection.cursor()
             with open(file_path, 'r') as f:
                 if include_headers:
                     cursor.copy_expert(

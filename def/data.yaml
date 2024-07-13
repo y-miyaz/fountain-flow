@@ -1,5 +1,5 @@
 tables:
-- name: public.products
+- name: products
   row_count: 10000
   columns:
   - name: product_id

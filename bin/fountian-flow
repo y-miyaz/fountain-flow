@@ -3,11 +3,6 @@
 # スクリプトが存在するディレクトリの絶対パスを取得
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Function definitions
-function run_app {
-    python "${BASEDIR}/../src/app.py" "$@"
-}
-
 function create_def {
     # Remove the first argument 'create-def'
     shift
@@ -21,21 +16,21 @@ function create_def {
     python "${BASEDIR}/../tools/create-def/app.py" "${abs_paths[@]}"
 }
 
+function cli {
+    python "${BASEDIR}/../src/cli.py"
+}
+
 # Command line handling
 case "$1" in
-    run)
-        shift  # Remove the first argument 'run'
-        run_app "$@"
-        ;;
     create-def)
         create_def "$@"
         ;;
-    show-def)
-        show_def
+    cli)
+        cli
         ;;
     -help)
         echo "Usage:"
-        echo "  fountain-flow run [--env [environment]] - Run the main application optionally in a specified environment"
+        echo "  fountain-flow cli - Launch CLI."
         echo "  fountain-flow create-def [ddl paths...] - Execute DDL scripts to create definitions"
         echo "  fountain-flow -help - Display this help message"
         ;;

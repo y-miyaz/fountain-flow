@@ -92,8 +92,13 @@ class DataGenerator:
                 row_count = table_config['row_count']
                 table_name = table_config['name']
                 is_error = False
-                response = input(
-                    f"\x1b[33mStart data generation and file writing process\ntable name: '{table_name}'\nrow count: '{row_count}'\n(y/N): \x1b[0m")
+                response = input((
+                            f'\x1b[33mStart data generation and file output\n'
+                            f"table name: '{table_name}\n"
+                            f"row count: '{row_count}'\n"
+                            f"(y/N): \x1b[0m"
+                        )
+                    )
                 if response.lower() == 'y':
 
                     generators = [self.generator_factory.get_generator(table_name,
@@ -111,17 +116,16 @@ class DataGenerator:
                                 csv_writer.save_to_csv(records)
                                 records = []
                             except Exception:
-                                logging.error(
-                                    f"Failed to write data to csv file: \ntable name: '{table_name}'\nrow count: '{index + 1}'")
+                                logging.error((
+                                        f"Failed to write data to csv file: \n"
+                                        f"table name: '{table_name}'\n"
+                                        f"row count: '{index + 1}'"
+                                    )
+                                )
                                 is_error = True
                                 break
                     logging.info(
                         f"Data generation completed: '{table_config['row_count']}' records were written to the file '{csv_writer.file_path}'.")
-                    response = input(
-                        "\x1b[33mDo you want to load the data into Database? (y/N): \x1b[0m")
-                    if response.lower() == 'y':
-                        self.load_csv_data(
-                            table_name, csv_writer.file_path, self.csv_config.get('include_headers', False))
             if is_error is True:
                 raise
         except Exception:
@@ -132,7 +136,8 @@ class DataGenerator:
             db_connector = db_connector_factory(self.db_config, env=self.env)
             db_connector.copy_data_from_csv(
                 table_name, file_path, include_headers)
-
+            logging.info(
+                f"Successfully load '{file_path}' into '{table_name}'.")
         except Exception:
             raise
         finally:
@@ -194,6 +199,8 @@ class DataGenerator:
         try:
             db_connector = db_connector_factory(self.db_config, env=self.env)
             db_connector.copy_data_from_json(table_name, file_path)
+            logging.info(
+                f"Successfully load '{file_path}' into '{table_name}'.")
         except Exception:
             raise
         finally:

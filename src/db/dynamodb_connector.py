@@ -44,7 +44,7 @@ class DynamoDBConnector(DBConnector):
 
     def get_foreign_key_values(self, table_name, key_name):
         logging.error(
-            "pg-fountain does not implement foreign key constraints for DynamoDB.")
+            "fountain-flow does not implement foreign key constraints for DynamoDB.")
         raise
 
     def get_table_definition(self, table_name):
@@ -131,9 +131,8 @@ class DynamoDBConnector(DBConnector):
             raise
 
     def truncate_table(self, table_name):
-        logging.error(
-            "pg-fountain does not implement truncate table for DynamoDB.")
-        raise
+        logging.info(
+            "fountain-flow does not implement truncate table for DynamoDB.")
 
     def insert_data(self, table_name, columns, data):
         try:

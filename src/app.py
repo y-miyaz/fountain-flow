@@ -27,7 +27,7 @@ def main():
         log_level = config['settings']['logging'].get('level', 'INFO')
 
         setup_logging(log_level)
-        print(db_config[args.env].get('type'))
+
         # ユーザにtruncateの確認を求める
         if db_config[args.env].get('type') != 'dynamodb':
             try:

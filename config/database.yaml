@@ -28,7 +28,7 @@ rds:
   profile: default
   host: arn:aws:rds:ap-northeast-1:xxxxxxxxxxxx:cluster:database-1
   dbname: postgres
-  secret_arn: arn:aws:secretsmanager:ap-northeast-1:xxxxxxxxxxxx:secret:rds-db-credentials/cluster-xxxxxxxxxxxx/postgres/xxxxxxxxxxxx
+  secret_arn: arn:aws:secretsmanager:ap-northeast-1:xxxxxxxxxxxx:secret:rds-db-credentials/cluster-xxxxxxxxxxxxpostgres/xxxxxxxxxxxx
   bucket_name: redshift-load-bucket-001
   object_key: csv_load/data.csv
   iam_role: arn:aws:iam::xxxxxxxxxxxx:role/rds-csv-load-role
@@ -57,6 +57,6 @@ dynamodb:
   type: dynamodb
   region: ap-northeast-1
   profile: default
-  bucket_name: dynamodb-load-bucket-001
+  bucket_name: dynamodb-xxxxxxxxxxxx-load-bucket-001
   object_key: json_load/data.json
   source_table: products_source

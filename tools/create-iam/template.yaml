@@ -7,10 +7,10 @@ Parameters:
     Type: String
 
 Resources:
-  PGFountainRedshiftLoadPolicy:
+  FountainFlowRedshiftLoadPolicy:
     Type: "AWS::IAM::Policy"
     Properties: 
-      PolicyName: "pgfountain-redshift-load-policy"
+      PolicyName: "fountain-flow-redshift-load-policy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -30,12 +30,12 @@ Resources:
               - !Sub "arn:aws:s3:::${S3BucketName}"
               - !Sub "arn:aws:s3:::${S3BucketName}/*"
       Roles: 
-        - !Ref PGFountainRedshiftLoadRole
+        - !Ref FountainFlowRedshiftLoadRole
 
-  PGFountainRedshiftLoadRole:
+  FountainFlowRedshiftLoadRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: "pgfountain-redshift-load-role"
+      RoleName: "fountain-flow-redshift-load-role"
       AssumeRolePolicyDocument: 
         Version: "2012-10-17"
         Statement:

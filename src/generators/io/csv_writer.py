@@ -14,7 +14,11 @@ class CSVWriter:
             self.delimiter = csv_settings.get('delimiter', ',')
             self.include_headers = csv_settings.get('include_headers', False)
             self.filename = self._generate_filename(data_config['name'])
-            self.file_path = os.path.join(self.dir, self.filename)
+            # スクリプトの場所を取得
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            # data ディレクトリの絶対パスを構築
+            data_dir = os.path.join(script_dir, '../../../data')
+            self.file_path = os.path.join(data_dir, self.filename)
         except Exception:
             raise
 

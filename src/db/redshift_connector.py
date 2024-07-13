@@ -33,7 +33,7 @@ class RedshiftConnector(DBConnector):
 
     def get_foreign_key_values(self, table_name, key_name):
         logging.error(
-            "pg-fountain does not implement foreign key constraints for Redshift.")
+            "fountain-flow does not implement foreign key constraints for Redshift.")
         raise
 
     def truncate_table(self, table_name):
@@ -61,7 +61,7 @@ class RedshiftConnector(DBConnector):
                     sql_data.append("'" + str(item) + "'")
 
             sql = f"INSERT INTO {table_name} VALUES ({', '.join(sql_data)})"
-            print(sql)
+
             response = self.redshift_client.execute_statement(
                 ClusterIdentifier=self.config['host'],
                 Database=self.config['dbname'],

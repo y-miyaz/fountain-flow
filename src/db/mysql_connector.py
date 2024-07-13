@@ -13,13 +13,14 @@ class MySQLConnector(DBConnector):
 
     def connect(self):
         try:
-            self.connection = mysql.connector.connect(
-                host=self.config['host'],
-                port=self.config['port'],
-                database=self.config['dbname'],
-                user=self.config['user'],
-                password=self.config['password']
-            )
+            if not self.connection or not self.connection.is_connected():
+                self.connection = mysql.connector.connect(
+                    host=self.config['host'],
+                    port=self.config['port'],
+                    database=self.config['dbname'],
+                    user=self.config['user'],
+                    password=self.config['password']
+                )
         except Exception:
             logging.exception("Failed to connect to MySQL database.")
             raise
@@ -36,8 +37,9 @@ class MySQLConnector(DBConnector):
 
     def get_foreign_key_values(self, table_name, key_name):
         """指定したテーブルからキーのリストを取得"""
-        cursor = self.connection.cursor()
         try:
+            self.connect()
+            cursor = self.connection.cursor()
             cursor.execute(f'SELECT DISTINCT {key_name} FROM {table_name}')
             keys = cursor.fetchall()
             return [key[0] for key in keys]
@@ -49,8 +51,9 @@ class MySQLConnector(DBConnector):
             cursor.close()
 
     def truncate_table(self, table_name):
-        cursor = self.connection.cursor()
         try:
+            self.connect()
+            cursor = self.connection.cursor()
             cursor.execute(f'TRUNCATE TABLE {table_name};')
             self.connection.commit()
             logging.info(f"Table '{table_name}' has been truncated.")
@@ -63,8 +66,9 @@ class MySQLConnector(DBConnector):
             cursor.close()
 
     def insert_data(self, table_name, columns, data):
-        cursor = self.connection.cursor()
         try:
+            self.connect()
+            cursor = self.connection.cursor()
             cursor.execute(
                 f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))})",
                 tuple(data)
@@ -77,8 +81,9 @@ class MySQLConnector(DBConnector):
             cursor.close()
 
     def copy_data_from_csv(self, table_name, file_path, include_headers):
-        cursor = self.connection.cursor()
         try:
+            self.connect()
+            cursor = self.connection.cursor()
             # secure_file_privの値を確認
             cursor.execute("SHOW VARIABLES LIKE 'secure_file_priv';")
             result = cursor.fetchone()
