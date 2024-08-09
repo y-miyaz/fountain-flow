@@ -1,8 +1,7 @@
 ## **FOUNTAIN-FLOW**
-### **Tool For Generating large datasets for performance testing**
-![](https://i.imgur.com/jDcmy4R.jpeg)
-
-`fountain-flow`は負荷試験向けのデータ生成ツールです。自身で設定したデータ生成ルールに従い、データの大量生成からDBへのデータ投入までの機能を一気通貫で提供します。
+### **Generating large datasets for performance testing**
+![](https://i.imgur.com/gBXgnHH.gif)
+`fountain-flow`は負荷試験向けのデータ生成ツールです。設定したデータ生成ルールに従い、データ生成からDBへのデータ投入までの機能を一気通貫で提供します。
 
 ### ユースケース
 `fountain-flow`は以下のようなケースでの利用を想定しています。
@@ -17,9 +16,9 @@
 ### 基本機能
 `fountain-flow`は以下の機能を提供します。
 
-- データ生成定義からのDBへの直接データ投入
-- データ生成定義からのCSVファイル, JSONファイル出力
-- CSVファイル, jsonファイルからのデータロード
+- データ生成定義からDBへ直接データを投入
+- データ生成定義からCSVファイル, JSONLファイルへのデータ出力
+- CSVファイル, JSONLファイルからのデータロード
 
 ## 動作要件
 
@@ -33,7 +32,7 @@
 ### 対応DB
 `fountain-flow`は主にAWSのデータベースに対応しています。
 
-| データベース               | CSV出力・ロード | JSON出力・ロード |INSERT |
+| データベース               | CSV形式の出力・ロード | JSON形式の出力・ロード |DBへのINSERT |
 | -------------------------- | -------- | -------- | ------------------- |
 | Postgres                   | ○        | ☓        | ○                   |
 | Mysql                      | ○        | ☓       | ○                   |
@@ -45,7 +44,7 @@
 | Amazon Redshift            | ○        | ☓        | ○                   |
 | Amazon Redshift Serverless | ○        | ☓        | ○                   |
 | Cassandra                  | ☓       | ☓        | ☓                   |
-| MongoDB                    | ☓       | ○        | ☓                   |
+| MongoDB                    | ☓       | ☓        | ☓                   |
 | Amazon Dynamo DB           | ☓        | ○        | ○                   |
 | Amazon Neptune             | ☓       | ☓        | ☓                   |
 | Snowflake                  | ☓       | ☓        | ☓                   |
@@ -56,7 +55,7 @@
 
 ## パッケージインストール
 
-アプリケーションに必要なパッケージをインストールするためには以下のコマンドを実行します:
+fountain-flowに必要なパッケージをインストールするためには以下のコマンドを実行します。
 
 ```sh
 # install packages
@@ -65,7 +64,7 @@ pip install -r requirements.txt
 
 ## アプリケーションの実行
 
-アプリケーションを実行するためには、以下のコマンドを実行します。
+fountain-flowを実行するためには、以下のコマンドを実行します。
 
 ```sh
 # fountain-flowを実行する
@@ -73,18 +72,20 @@ bin/fountain-flow cli
 ```
 
 database.yamlで定義した接続環境を選択します。
-
+(database.yamlの設定方法は`database.yaml`の節を参照)
 
 ```sh
 [?] 接続環境を選んでください(database.yaml): 
- > default
-   postgres
+   default
+ > postgres
    mysql
    rds
    redshift_serverless
    redshift
    dynamodb
 ```
+
+### 処理選択メニュー
 
 実行したい処理を選択します。
 | 処理名               | 説明
@@ -105,10 +106,114 @@ database.yamlで定義した接続環境を選択します。
    Switch Env
    Exit
 ```
+### Truncate Table
 
-## 定義(data.yaml)の生成
+data.yamlで定義したテーブルを指定して、truncateを実行します。
+`Exit`を選択すると、`処理選択メニュー`に戻ります。
 
-fountain-flow ではデータ生成のためのデータ定義ファイル(data.yaml)の設定が必要です。定義ファイルは手動で作成するほか、定義を生成するコマンドを実行することで、def/data.yaml に雛形が作成されます。
+```
+[?] Please select the table name to truncate.(data.yaml): 
+ > products
+   Exit
+```
+
+`y`または`Y`の入力でtruncateを実行します。
+それ以外の場合は、`処理選択メニュー`に戻ります。
+
+```
+Do you want to truncate table 'products'? (y/N): y
+```
+
+```
+xxxx-xx-xx xx:xx:xx,xxx - INFO - Table 'products' has been truncated.
+```
+
+### Generate Data & Insert Records
+
+data.yamlで定義したテーブルを指定して、データの作成及びデータのINSERTを行います。
+`Exit`を選択すると、`処理選択メニュー`に戻ります。
+```
+[?] Please select the table name for the INSERT operation.(data.yaml): 
+ > products
+   Exit
+```
+
+`y`または`Y`の入力でデータの作成及びデータのINSERTを実行します。
+それ以外の場合は、`処理選択メニュー`に戻ります。
+
+```
+Start data generation and insersion (y/N): y
+```
+```
+Inserting data: 100%|████████████████████████████████████████████████████████████████████████████████████████████████| 10000/10000
+xxxx-xx-xx xx:xx:xx,xxx - INFO - Data insertion completed: '10000' records were inserted into the table 'products'.
+```
+
+### Generate Data & File Output
+
+data.yamlで定義したテーブルを指定して、データの作成及びファイル出力を行います。
+`Exit`を選択すると、`処理選択メニュー`に戻ります。
+```
+[?] Please select the table name for file creation.(data.yaml): 
+ > products
+   Exit
+```
+
+`y`または`Y`の入力でデータの作成及びデータのファイル出力を実行します。
+それ以外の場合は、`処理選択メニュー`に戻ります。
+```
+Start data generation and file output
+table name: 'products
+row count: '10000'
+(y/N): y
+```
+
+出力先のファイルがフルパスで表示されます。
+
+
+```
+xxxx-xx-xx xx:xx:xx,xxx - INFO - Data generation completed: '10000' records were written to the file '/xxxx/xxxx/xxxx/xxxx/fountain-flow/data/xxxxxxxxxxxxxx_products.csv'.
+```
+
+### Load File
+
+data.yamlで定義したテーブルを指定して、データの作成及びファイル出力を行います。
+`Exit`を選択すると、`処理選択メニュー`に戻ります。
+```
+[?] Please select the table name to load into the database.(data.yaml): 
+ > products
+   Exit
+```
+
+`fountain-flow/data`配下のファイルの一覧を表示されます。
+ロードするファイルを選択します。
+`Exit`を選択すると、`処理選択メニュー`に戻ります。
+
+```
+[?] Please select the file to load into the database.(/data): 
+   20240809120716_products.csv
+   20240713220501_products.csv
+   20240713220142_products.csv
+ > 20240809122933_products.csv
+   Exit
+```
+
+CSVファイルの場合はヘッダを含むかどうかを選択します。
+ヘッダを含む場合は、`y`または`Y`を入力してください。ヘッダを含まない場合はそれ以外の文字を入力してください。
+
+```
+Does the CSV file include headers? (y/N): y
+```
+
+ロードに成功すると、指定したファイルのロードが完了した以下のメッセージが表示されます。
+
+```
+xxxx-xx-xx xx:xx:xx,xxx - INFO - Successfully load '/xxxx/xxxx/xxxx/xxxx/fountain-flow/data/20240809122933_products.csv' into 'products'.
+```
+
+### データ生成ルール(data.yaml)の生成
+
+fountain-flow ではデータ生成のためのデータ定義ファイル(data.yaml)の設定が必要です。定義ファイルは手動で作成するほか、create-defコマンドを使用することで、テーブルの定義から定義の雛形がdef/data.yaml として作成されます。
 
 ```sh
 bin/fountain-flow create-def path/to/ddl1.sql path/to/ddl2.sql

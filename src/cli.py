@@ -14,18 +14,17 @@ def load_config(file_path):
         return yaml.safe_load(file)
 
 class FountainFlowCLI:
-    def truncate_table(self, db_config, data_config, env):
+    def truncate_table(self, db_config, env, table_name):
        # ユーザにtruncateの確認を求める
         if db_config[env].get('type') != 'dynamodb':
             try:
                 db_connector = db_connector_factory(
                     db_config, env=env)
-                for table in data_config['tables']:
-                    response = input(
-                        f"\x1b[33mDo you want to truncate table '{table['name']}'? (y/N): \x1b[0m")
-                    if response.lower() == 'y':
-                        # truncateするテーブル名を指定
-                        db_connector.truncate_table(table['name'])
+                response = input(
+                    f"\x1b[33mDo you want to truncate table '{table_name}'? (y/N): \x1b[0m")
+                if response.lower() == 'y':
+                    # truncateするテーブル名を指定
+                    db_connector.truncate_table(table_name)
             except NotImplementedError:
                 pass
             except:
@@ -39,18 +38,18 @@ class FountainFlowCLI:
                 raise
 
 
-    def generate_and_insert(self, config, db_config, data_config, env):
+    def generate_and_insert(self, config, db_config, data_config, env, table_name):
         """データを生成してレコードを挿入します。"""
         try:
             config['settings']['data_generation']['method'] = 'database'
 
             data_generator = DataGenerator(
                 config, db_config, data_config, env)
-            data_generator.generate_data()
+            data_generator.generate_data(table_name)
         except NotImplementedError:
             pass
 
-    def generate_and_output(self, config, db_config, data_config, env):
+    def generate_and_output(self, config, db_config, data_config, env, table_name):
         """データを生成してファイルに出力します。"""
         try:
             if db_config[env].get('type') != 'dynamodb':
@@ -59,19 +58,23 @@ class FountainFlowCLI:
                 config['settings']['data_generation']['method'] = 'json'
             data_generator = DataGenerator(
                 config, db_config, data_config, env)
-            data_generator.generate_data()
+            data_generator.generate_data(table_name)
         except NotImplementedError:
             pass
 
     def load_file(self, config, db_config, data_config, env, table_name, file_path):
         """ファイルを読み込みます。"""
         try:
+            if db_config[env].get('type') != 'dynamodb':
+                config['settings']['data_generation']['method'] = 'csv'
+            else:
+                config['settings']['data_generation']['method'] = 'json'
             data_generator = DataGenerator(
                 config, db_config, data_config, env)
             if db_config.get(env)['type'] == 'dynamodb':
                 data_generator.load_json_data(table_name, file_path)
             else:
-                response = input("CSVファイルにヘッダは含みますか？ (y/N): ")
+                response = input("Does the CSV file include headers? (y/N): ")
                 if response.lower() == 'y':
                     include_headers = True
                 else:
@@ -86,7 +89,7 @@ class FountainFlowCLI:
         questions = [
             inquirer.List(
                 'action',
-                message="接続環境を選んでください(database.yaml)",
+                message="Please select the connection environment.(database.yaml)",
                 choices=envs
             ),
         ]
@@ -112,7 +115,7 @@ def main():
             questions = [
                 inquirer.List(
                     'action',
-                    message=f"選択肢を選んでください(env={env})",
+                    message=f"Please select an option.(env={env})",
                     choices=[
                         ('Truncate Table', 'truncate_table'),
                         ('Generate Data & Insert Records', 'generate_and_insert'),
@@ -127,22 +130,60 @@ def main():
             answers = inquirer.prompt(questions)
 
             if answers['action'] == 'truncate_table':
-                cli.truncate_table(db_config, data_config, env)
-            elif answers['action'] == 'generate_and_insert':
-                cli.generate_and_insert(config, db_config, data_config, env)
-            elif answers['action'] == 'generate_and_output':
-                cli.generate_and_output(config, db_config, data_config, env)
-            elif answers['action'] == 'load_file':
-                table_names = [table['name'] for table in data_config['tables']]
+                table_names = [table['name'] for table in data_config['tables']] + ['Exit']
                 questions = [
                     inquirer.List(
                         'action',
-                        message="DBにロードするテーブル名を選んでください(data.yaml)",
+                        message="Please select the table name to truncate.(data.yaml)",
                         choices=table_names
                     ),
                 ]
                 answers = inquirer.prompt(questions)
                 table_name = answers['action']
+                if table_name == 'Exit':
+                    continue
+                cli.truncate_table(db_config, env, table_name)
+            elif answers['action'] == 'generate_and_insert':
+                table_names = [table['name'] for table in data_config['tables']] + ['Exit']
+                questions = [
+                    inquirer.List(
+                        'action',
+                        message="Please select the table name for the INSERT operation.(data.yaml)",
+                        choices=table_names
+                    ),
+                ]
+                answers = inquirer.prompt(questions)
+                table_name = answers['action']
+                if table_name == 'Exit':
+                    continue
+                cli.generate_and_insert(config, db_config, data_config, env, table_name)
+            elif answers['action'] == 'generate_and_output':
+                table_names = [table['name'] for table in data_config['tables']] + ['Exit']
+                questions = [
+                    inquirer.List(
+                        'action',
+                        message="Please select the table name for file creation.(data.yaml)",
+                        choices=table_names
+                    ),
+                ]
+                answers = inquirer.prompt(questions)
+                table_name = answers['action']
+                if table_name == 'Exit':
+                    continue
+                cli.generate_and_output(config, db_config, data_config, env, table_name)
+            elif answers['action'] == 'load_file':
+                table_names = [table['name'] for table in data_config['tables']] + ['Exit']
+                questions = [
+                    inquirer.List(
+                        'action',
+                        message="Please select the table name to load into the database.(data.yaml)",
+                        choices=table_names
+                    ),
+                ]
+                answers = inquirer.prompt(questions)
+                table_name = answers['action']
+                if table_name == 'Exit':
+                    continue
                 # スクリプトの場所を取得
                 script_dir = os.path.dirname(os.path.abspath(__file__))
                 # data ディレクトリの絶対パスを構築
@@ -150,24 +191,30 @@ def main():
                 # ディレクトリ内のファイル名一覧を取得
                 files = os.listdir(data_dir)
                 # csvとjsonファイルのみにフィルタリング
-                files = [f for f in files if f.endswith('.csv') or f.endswith('.json')]
+                if db_config[env].get('type') != 'dynamodb':
+                    files = [f for f in files if f.endswith('.csv')] + ['Exit']
+                else:
+                    files = [f for f in files if f.endswith('.json')] + ['Exit']
+
                 questions = [
                     inquirer.List(
                         'action',
-                        message="DBにロードするテーブル名を選んでください(/data)",
+                        message="Please select the file to load into the database.(/data)",
                         choices=files
                     ),
                 ]
                 answers = inquirer.prompt(questions)
+                if answers['action'] == 'Exit':
+                    continue
                 file_path = data_dir + '/' + answers['action']
                 cli.load_file(config, db_config, data_config, env, table_name, file_path)
             elif answers['action'] == 'switch_env':
                 env = cli.switch_env(db_config)
             elif answers['action'] == 'exit':
-                logging.info("終了します。")
+                logging.info("exit fountain-flow.")
                 break
         except Exception:
-            logging.exception('処理に失敗しました。')
+            logging.exception('The operation failed.')
 
             
 if __name__ == '__main__':

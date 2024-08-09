@@ -57,9 +57,9 @@ class PGConnector(DBConnector):
             self.connection.commit()
             logging.info(f"Table '{table_name}' has been truncated.")
         except Exception:
+            self.connection.rollback()
             logging.exception(
                 f"Failed to truncate table '{table_name}'.")
-            self.connection.rollback()
             raise
         finally:
             cursor.close()
@@ -73,6 +73,7 @@ class PGConnector(DBConnector):
                 tuple(data)
             )
         except Exception:
+            self.connection.rollback()
             logging.exception(
                 f"Failed to insert data into table '{table_name}'.")
             raise
@@ -98,3 +99,4 @@ class PGConnector(DBConnector):
             raise
         finally:
             cursor.close()
+
