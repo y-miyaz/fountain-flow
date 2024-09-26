@@ -6,13 +6,15 @@ class ForeignKeyGenerator:
         try:
             db_connector = db_connector_factory(db_config, env=env)
             db_connector.connect()
-            self.foreign_table = column['generation']['foreign_table']
-            self.foreign_key = column['generation']['foreign_key']
+            self.foreign_table = column["generation"]["foreign_table"]
+            self.foreign_key = column["generation"]["foreign_key"]
             values = db_connector.get_foreign_key_values(
-                self.foreign_table, self.foreign_key)
-            column['generation']['values'] = values
+                self.foreign_table, self.foreign_key
+            )
+            column["generation"]["values"] = values
             self.base_generator = base_generator(
-                table_name, column)  # 実際のデータ生成を行うジェネレータ
+                table_name, column
+            )  # 実際のデータ生成を行うジェネレータ
         except Exception:
             raise
 

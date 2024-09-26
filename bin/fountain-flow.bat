@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableDelayedExpansion
 
 REM スクリプトが存在するディレクトリの絶対パスを取得
 set BASEDIR=%~dp0

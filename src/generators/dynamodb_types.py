@@ -8,13 +8,14 @@ class DynamoDBTypes:
         from generators.list_generator import ListGenerator
         from generators.string_generator import StringGenerator
         from generators.timestamp_generator import TimestampGenerator
+
         dynamodb_types = {
-            IntegerGenerator: 'N',
-            FloatGenerator: 'N',
-            StringGenerator: 'S',
-            BooleanGenerator: 'BOOL',
-            TimestampGenerator: 'S',
-            JsonGenerator: 'M',
-            ListGenerator: 'L',
+            IntegerGenerator: "N",
+            FloatGenerator: "N",
+            StringGenerator: "S",
+            BooleanGenerator: "BOOL",
+            TimestampGenerator: "S",
+            JsonGenerator: "M",
+            ListGenerator: "L",
         }
-        return dynamodb_types.get(type(value), 'S')
+        return dynamodb_types.get(type(value), "S")

@@ -2,6 +2,7 @@ import logging
 import time
 
 import boto3
+
 from db.db_connector import DBConnector
 
 
@@ -14,12 +15,11 @@ class RedshiftConnector(DBConnector):
 
     def connect(self):
         try:
-            session = boto3.Session(
-                profile_name=self.config.get('profile', 'default'))
+            session = boto3.Session(profile_name=self.config.get("profile", "default"))
             self.redshift_client = session.client(
-                'redshift-data', region_name=self.config['region'])
-            self.s3_client = session.client(
-                's3', region_name=self.config['region'])
+                "redshift-data", region_name=self.config["region"]
+            )
+            self.s3_client = session.client("s3", region_name=self.config["region"])
         except Exception:
             logging.exception("Failed to connect to Redshift database.")
             raise
@@ -33,22 +33,22 @@ class RedshiftConnector(DBConnector):
 
     def get_foreign_key_values(self, table_name, key_name):
         logging.error(
-            "fountain-flow does not implement foreign key constraints for Redshift.")
+            "fountain-flow does not implement foreign key constraints for Redshift."
+        )
         raise
 
     def truncate_table(self, table_name):
         try:
-            sql = f'TRUNCATE TABLE {table_name};'
+            sql = f"TRUNCATE TABLE {table_name};"
             response = self.redshift_client.execute_statement(
-                ClusterIdentifier=self.config['host'],
-                Database=self.config['dbname'],
-                Sql=sql
+                ClusterIdentifier=self.config["host"],
+                Database=self.config["dbname"],
+                Sql=sql,
             )
-            self._check_status(response['Id'])
+            self._check_status(response["Id"])
             logging.info(f"Table '{table_name}' has been truncated.")
         except Exception:
-            logging.exception(
-                f"Failed to truncate table '{table_name}'.")
+            logging.exception(f"Failed to truncate table '{table_name}'.")
             raise
 
     def insert_data(self, table_name, columns, data):
@@ -63,64 +63,61 @@ class RedshiftConnector(DBConnector):
             sql = f"INSERT INTO {table_name} VALUES ({', '.join(sql_data)})"
 
             response = self.redshift_client.execute_statement(
-                ClusterIdentifier=self.config['host'],
-                Database=self.config['dbname'],
+                ClusterIdentifier=self.config["host"],
+                Database=self.config["dbname"],
                 Sql=sql,
             )
-            self._check_status(response['Id'])
+            self._check_status(response["Id"])
         except Exception:
-            logging.exception(
-                f"Failed to insert data into table '{table_name}'.")
+            logging.exception(f"Failed to insert data into table '{table_name}'.")
             raise
 
     def copy_data_from_csv(self, table_name, file_path, include_headers):
         try:
             # S3にファイルをアップロード
-            bucket_name = self.config['bucket_name']
-            object_key = self.config['object_key']
-            iam_role = self.config['iam_role']
-            s3_uri = f's3://{bucket_name}/{object_key}'
+            bucket_name = self.config["bucket_name"]
+            object_key = self.config["object_key"]
+            iam_role = self.config["iam_role"]
+            s3_uri = f"s3://{bucket_name}/{object_key}"
             self.s3_client.upload_file(file_path, bucket_name, object_key)
 
-            logging.info(
-                f"Successfully uploaded {file_path} to {s3_uri}")
+            logging.info(f"Successfully uploaded {file_path} to {s3_uri}")
 
             if include_headers:
-                sql = f"COPY {table_name} FROM '{s3_uri}' IAM_ROLE '{iam_role}' CSV IGNOREHEADER as 1"
+                sql = f"COPY {table_name} FROM '{s3_uri}' IAM_ROLE '{
+                    iam_role}' CSV IGNOREHEADER as 1"
             else:
-                sql = f"COPY {table_name} FROM '{s3_uri}' IAM_ROLE '{iam_role}' CSV"
+                sql = f"COPY {table_name} FROM '{
+                    s3_uri}' IAM_ROLE '{iam_role}' CSV"
 
             # S3からRedshiftにデータをコピー
             response = self.redshift_client.execute_statement(
-                ClusterIdentifier=self.config['host'],
-                Database=self.config['dbname'],
-                Sql=sql
+                ClusterIdentifier=self.config["host"],
+                Database=self.config["dbname"],
+                Sql=sql,
             )
-            self._check_status(response['Id'])
-            logging.info(
-                f"Successfully loaded {s3_uri} to {table_name}")
+            self._check_status(response["Id"])
+            logging.info(f"Successfully loaded {s3_uri} to {table_name}")
         except Exception:
             logging.exception(
-                f"Failed to copy data from CSV file to table '{table_name}'.")
+                f"Failed to copy data from CSV file to table '{table_name}'."
+            )
             raise
 
     def _check_status(self, statement_id):
         while True:
             response = self.redshift_client.describe_statement(Id=statement_id)
-            status = response['Status']
-            if status == 'FINISHED':
-                if response.get('Records'):
-                    return response['Records']
+            status = response["Status"]
+            if status == "FINISHED":
+                if response.get("Records"):
+                    return response["Records"]
                 else:
                     return response
-            elif status == 'FAILED':
-                logging.error(
-                    f"Statement execution failed: {response['Error']}")
-                raise Exception(
-                    f"Statement execution failed: {response['Error']}")
-            elif status in ('SUBMITTED', 'PICKED', 'STARTED'):
-                logging.info(
-                    f"Waiting for statement {statement_id} to finish...")
+            elif status == "FAILED":
+                logging.error(f"Statement execution failed: {response['Error']}")
+                raise Exception(f"Statement execution failed: {response['Error']}")
+            elif status in ("SUBMITTED", "PICKED", "STARTED"):
+                logging.info(f"Waiting for statement {statement_id} to finish...")
                 time.sleep(self.check_interval)
             else:
                 logging.error(f"Unexpected statement status: {status}")

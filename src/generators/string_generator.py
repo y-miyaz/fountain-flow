@@ -7,52 +7,39 @@ from generators.generator import ValueGenerator
 
 class StringGenerator(ValueGenerator):
     def __init__(self, table_name, column):
-        try:
-            super().__init__(table_name, column)
-            self.method = self.column['generation']['method']
-            self.values = self.column['generation'].get('values', None)
-            self.length = int(self.column['generation'].get('length', 10))
-            self.validate()
-        except Exception:
-            raise
+        super().__init__(table_name, column)
+        self.method = self.column["generation"]["method"]
+        self.values = self.column["generation"].get("values")
+        self.length = int(self.column["generation"].get("length", 10))
+        self.validate()
 
     def validate(self):
-        try:
-            errors = super().validate()
-            if self.method == 'random':
-                if self.values is None:
-                    errors.append("'random' method needs 'values'.")
-            self.handle_errors(errors)
-        except Exception:
-            raise
+        errors = super().validate()
+        # 'random' メソッドで 'values' が指定されていない場合でも、デフォルトで文字列を生成するためエラーは不要
+        self.handle_errors(errors)
 
     def generate(self):
-        try:
-            if self.method == 'sequence':
-                if self.values is not None:
-                    result = self.values[self.value_index % len(
-                        self.values)]
-                    self.value_index += 1
-                    return result
-                else:
-                    self.current_value = "{:0>{width}}".format(self.value_index,
-                                                               width=self.length)
-                    self.value_index += 1
-
-            elif self.method == 'random':
-                if self.values is not None:
-                    return self.values[random.randint(
-                        0, len(self.values) - 1)]
-                else:
-                    return ''.join(random.choices(string.ascii_letters + string.decimal_placess,
-                                                  k=self.length))
-            return self.current_value
-        except Exception:
-            raise
+        if self.method == "sequence":
+            if self.values:
+                result = self.values[self.value_index % len(self.values)]
+                self.value_index += 1
+                return result
+            else:
+                result = "{:0>{width}}".format(self.value_index, width=self.length)
+                self.value_index += 1
+                return result
+        elif self.method == "random":
+            if self.values:
+                return random.choice(self.values)
+            else:
+                return "".join(
+                    random.choices(string.ascii_letters + string.digits, k=self.length)
+                )
+        else:
+            logging.error(
+                f"Unknown generation method '{self.method}' in {self.table_name}.{self.column_name}"
+            )
+            raise ValueError(f"Unknown generation method '{self.method}'")
 
     def get_start_value(self):
-        try:
-            return '0' * self.length
-        except:
-            logging.error(f"{self.column['name']} cannot get start value.")
-            raise
+        return "0" * self.length
