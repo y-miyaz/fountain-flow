@@ -1,6 +1,7 @@
 ## **FOUNTAIN-FLOW**
 ### **Generating large datasets for performance testing**
-![](https://i.imgur.com/gBXgnHH.gif)
+![fountain-flow](https://github.com/user-attachments/assets/cd799b9d-6a9f-4deb-9288-524ddcbba767)
+
 `fountain-flow`は負荷試験向けのデータ生成ツールです。設定したデータ生成ルールに従い、データ生成からDBへのデータ投入までの機能を一気通貫で提供します。
 
 ### ユースケース
