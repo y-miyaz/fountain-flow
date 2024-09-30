@@ -22,7 +22,7 @@ class MySQLConnector(DBConnector):
                     password=self.config["password"],
                 )
             except Exception as e:
-                logging.exception("Failed to connect to MySQL database.")
+                logging.error("Failed to connect to MySQL database.")
                 raise e
 
     def commit(self):
@@ -31,7 +31,7 @@ class MySQLConnector(DBConnector):
                 self.connection.commit()
             except Exception as e:
                 self.connection.rollback()
-                logging.exception("Failed to commit transaction.")
+                logging.error("Failed to commit transaction.")
                 raise e
 
     def close(self):
@@ -39,7 +39,7 @@ class MySQLConnector(DBConnector):
             try:
                 self.connection.close()
             except Exception as e:
-                logging.exception("Failed to close the connection.")
+                logging.error("Failed to close the connection.")
                 raise e
 
     def get_foreign_key_values(self, table_name, key_name):
@@ -50,7 +50,7 @@ class MySQLConnector(DBConnector):
                 keys = cursor.fetchall()
                 return [key[0] for key in keys]
         except Exception as e:
-            logging.exception(
+            logging.error(
                 f"Failed to get foreign keys values '{table_name}.{key_name}'."
             )
             raise e
@@ -64,7 +64,7 @@ class MySQLConnector(DBConnector):
             logging.info(f"Table '{table_name}' has been truncated.")
         except Exception as e:
             self.connection.rollback()
-            logging.exception(f"Failed to truncate table '{table_name}'.")
+            logging.error(f"Failed to truncate table '{table_name}'.")
             raise e
 
     def insert_data(self, table_name, columns, data):
@@ -78,7 +78,7 @@ class MySQLConnector(DBConnector):
             self.connection.commit()
         except Exception as e:
             self.connection.rollback()
-            logging.exception(f"Failed to insert data into table '{table_name}'.")
+            logging.error(f"Failed to insert data into table '{table_name}'.")
             raise e
 
     def copy_data_from_csv(self, table_name, file_path, include_headers):
@@ -119,7 +119,5 @@ class MySQLConnector(DBConnector):
             )
         except Exception as e:
             self.connection.rollback()
-            logging.exception(
-                f"Failed to copy data from CSV file to table '{table_name}'."
-            )
+            logging.error(f"Failed to copy data from CSV file to table '{table_name}'.")
             raise e

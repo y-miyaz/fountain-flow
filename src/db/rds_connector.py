@@ -19,9 +19,9 @@ class RDSConnector(DBConnector):
                 "rds-data", config=boto_config, region_name=self.region
             )
             self.s3_client = session.client("s3", region_name=self.region)
-        except Exception:
-            logging.exception("Failed to initialize RDSConnector.")
-            raise
+        except Exception as e:
+            logging.error("Failed to initialize RDSConnector.")
+            raise e
 
     def execute_statement(self, sql, parameters=None):
         try:
@@ -38,9 +38,9 @@ class RDSConnector(DBConnector):
 
             response = self.rds_client.execute_statement(**params)
             return response
-        except Exception:
-            logging.exception("Failed to execute statement.")
-            raise
+        except Exception as e:
+            logging.error("Failed to execute statement.")
+            raise e
 
     def connect(self):
         pass  # Boto3 RDS Data API does not require an explicit connection.
@@ -58,19 +58,19 @@ class RDSConnector(DBConnector):
             response = self.execute_statement(sql)
             keys = response["records"]
             return [record[0]["stringValue"] for record in keys]
-        except Exception:
-            logging.exception(f"Failed to get foreign keys values '{
+        except Exception as e:
+            logging.error(f"Failed to get foreign keys values '{
                               table_name}.{key_name}'.")
-            raise
+            raise e
 
     def truncate_table(self, table_name):
         try:
             sql = f"TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE"
             self.execute_statement(sql)
             logging.info(f"Table '{table_name}' has been truncated.")
-        except Exception:
-            logging.exception(f"Failed to truncate table '{table_name}'.")
-            raise
+        except Exception as e:
+            logging.error(f"Failed to truncate table '{table_name}'.")
+            raise e
 
     def insert_data(self, table_name, columns, data):
         logging.error("Insert operation is not implemented for RDS.")
@@ -106,8 +106,6 @@ class RDSConnector(DBConnector):
             # SQLコマンドの実行
             self.execute_statement(sql)
             logging.info(f"Successfully loaded {s3_uri} to {table_name}")
-        except Exception:
-            logging.exception(
-                f"Failed to copy data from CSV file to table '{table_name}'."
-            )
-            raise
+        except Exception as e:
+            logging.error(f"Failed to copy data from CSV file to table '{table_name}'.")
+            raise e

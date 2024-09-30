@@ -6,7 +6,7 @@ def get_log_level(level_name):
     if isinstance(level, int):
         return level
     else:
-        raise ValueError(f"Invalid log level: {level_name}")
+        raise e ValueError(f"Invalid log level: {level_name}")
 
 
 def setup_logging(level_name):

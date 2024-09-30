@@ -19,26 +19,26 @@ class PGConnector(DBConnector):
                     user=self.config["user"],
                     password=self.config["password"],
                 )
-        except Exception:
-            logging.exception("Failed to connect to database.")
-            raise
+        except Exception as e:
+            logging.error("Failed to connect to database.")
+            raise e
 
     def commit(self):
         if self.connection and self.connection.closed == 0:
             try:
                 self.connection.commit()
-            except Exception:
+            except Exception as e:
                 self.connection.rollback()
-                logging.exception("Failed to commit transaction.")
-                raise
+                logging.error("Failed to commit transaction.")
+                raise e
 
     def close(self):
         if self.connection and self.connection.closed == 0:
             try:
                 self.connection.close()
-            except Exception:
-                logging.exception("Failed to close the connection.")
-                raise
+            except Exception as e:
+                logging.error("Failed to close the connection.")
+                raise e
 
     def get_foreign_key_values(self, table_name, key_name):
         """指定したテーブルからキーのリストを取得"""
@@ -48,11 +48,11 @@ class PGConnector(DBConnector):
                 cursor.execute(f"SELECT DISTINCT {key_name} FROM {table_name}")
                 keys = cursor.fetchall()
                 return [key[0] for key in keys]
-        except Exception:
-            logging.exception(
+        except Exception as e:
+            logging.error(
                 f"Failed to get foreign keys values '{table_name}.{key_name}'."
             )
-            raise
+            raise e
 
     def truncate_table(self, table_name):
         try:
@@ -61,11 +61,11 @@ class PGConnector(DBConnector):
                 cursor.execute(f"TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;")
             self.connection.commit()
             logging.info(f"Table '{table_name}' has been truncated.")
-        except Exception:
+        except Exception as e:
             if self.connection and self.connection.closed == 0:
                 self.connection.rollback()
-            logging.exception(f"Failed to truncate table '{table_name}'.")
-            raise
+            logging.error(f"Failed to truncate table '{table_name}'.")
+            raise e
 
     def insert_data(self, table_name, columns, data):
         try:
@@ -76,11 +76,11 @@ class PGConnector(DBConnector):
                 query = f"INSERT INTO {table_name} ({columns_formatted}) VALUES ({
                     placeholders})"
                 cursor.execute(query, tuple(data))
-        except Exception:
+        except Exception as e:
             if self.connection and self.connection.closed == 0:
                 self.connection.rollback()
-            logging.exception(f"Failed to insert data into table '{table_name}'.")
-            raise
+            logging.error(f"Failed to insert data into table '{table_name}'.")
+            raise e
 
     def copy_data_from_csv(self, table_name, file_path, include_headers):
         try:
@@ -92,10 +92,8 @@ class PGConnector(DBConnector):
                         copy_command += " HEADER"
                     cursor.copy_expert(copy_command, f)
             self.connection.commit()
-        except Exception:
+        except Exception as e:
             if self.connection and self.connection.closed == 0:
                 self.connection.rollback()
-            logging.exception(
-                f"Failed to copy data from CSV file to table '{table_name}'."
-            )
-            raise
+            logging.error(f"Failed to copy data from CSV file to table '{table_name}'.")
+            raise e

@@ -1,6 +1,6 @@
 tables:
 - name: products
-  row_count: 10000
+  row_count: 1000000
   columns:
   - name: product_id
     type: integer

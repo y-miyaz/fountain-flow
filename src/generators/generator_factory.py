@@ -25,40 +25,44 @@ class GeneratorFactory:
         from generators.list_generator import ListGenerator
         from generators.string_generator import StringGenerator
         from generators.timestamp_generator import TimestampGenerator
+
         generators = {
-            'integer': IntegerGenerator,
-            'float': FloatGenerator,
-            'string': StringGenerator,
-            'boolean': BooleanGenerator,
-            'timestamp': TimestampGenerator,
-            'json': JsonGenerator,
-            'list': ListGenerator,
+            "integer": IntegerGenerator,
+            "float": FloatGenerator,
+            "string": StringGenerator,
+            "boolean": BooleanGenerator,
+            "timestamp": TimestampGenerator,
+            "json": JsonGenerator,
+            "list": ListGenerator,
         }
 
         try:
-            if 'type' not in column:
+            if "type" not in column:
                 logging.error(
-                    f"Validation errors in '{table_name}.{column['name']}': Column configuration error: 'type' is required")
-                raise ValueError(
-                    f"Column configuration error: 'type' is required")
+                    f"Validation errors in '{table_name}.{column['name']}': Column configuration error: 'type' is required"
+                )
+                raise ValueError(f"Column configuration error: 'type' is required")
 
-            data_type = column['type']
+            data_type = column["type"]
             if data_type not in generators.keys():
                 logging.error(
-                    f"Validation errors in '{table_name}.{column['name']}': No generator available for data type: '{data_type}'")
-                raise ValueError(
-                    f"No generator available for data type: '{data_type}'")
+                    f"Validation errors in '{table_name}.{column['name']}': No generator available for data type: '{data_type}'"
+                )
+                raise ValueError(f"No generator available for data type: '{data_type}'")
 
             generator_class = generators[data_type]
-            if 'generation' in column.keys():
-                if column['generation'].get('foreign_table', None) is not None and column['generation'].get('foreign_key', None) is not None:
+            if "generation" in column.keys():
+                if (
+                    column["generation"].get("foreign_table", None) is not None
+                    and column["generation"].get("foreign_key", None) is not None
+                ):
                     generator = ForeignKeyGenerator(
-                        self.db_config, self.env, table_name, column, generator_class)
+                        self.db_config, self.env, table_name, column, generator_class
+                    )
                 else:
                     generator = generator_class(table_name, column)
             else:
                 generator = generator_class(table_name, column)
             return generator
         except Exception as e:
-            logging.error(f"Error in get_generator: {e}")
-            raise
+            raise e

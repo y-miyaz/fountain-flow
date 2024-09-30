@@ -87,7 +87,7 @@ class DataGenerator:
                     row_count}' records were inserted into the table '{table_name}'."
             )
         except Exception as e:
-            logging.warning(
+            logging.error(
                 f"An error occurred during data generation for table '{table_name}'."
             )
             raise e

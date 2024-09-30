@@ -7,11 +7,13 @@ import yaml
 
 from db.db_connector_factory import db_connector_factory
 from format.custom_fomatter import setup_logging
-from generators.data_generator import DataGenerator
+from util.validate import (
+    validate_db_config,
+    validate_settings,
+    validate_data_definition,
+)
 
-# logging.basicConfig(
-#    level=logging.ERROR, format="%(asctime)s - %(levelname)s - %(message)s"
-# )
+from generators.data_generator import DataGenerator
 
 
 def load_config(file_path):
@@ -31,6 +33,15 @@ class FountainFlowCLI:
         log_level = self.config["settings"]["logging"].get("level", "INFO")
         setup_logging(log_level)
 
+        db_config_errors = validate_db_config(self.db_config)
+        if db_config_errors:
+            for error in db_config_errors:
+                logging.error(error)
+        settings_errors = validate_settings(self.config)
+        if settings_errors:
+            for error in settings_errors:
+                logging.error(error)
+
     def truncate_table(self, env, table_name):
         """指定したテーブルをトランケートします。"""
         try:
@@ -46,7 +57,7 @@ class FountainFlowCLI:
                 "Truncate operation is not implemented for this database type."
             )
         except Exception:
-            logging.exception(f"Failed to truncate table '{table_name}'.")
+            logging.exception("Operation Failed: tuncate table.")
 
     def generate_and_insert(self, env, table_name):
         """データを生成してレコードを挿入します。"""
@@ -59,9 +70,7 @@ class FountainFlowCLI:
         except NotImplementedError:
             logging.warning("Generate and insert operation is not implemented.")
         except Exception:
-            logging.exception(
-                f"Failed to generate and insert data into table '{table_name}'."
-            )
+            logging.exception("Operation Failed: generate and insert.")
 
     def generate_and_output(self, env, table_name):
         """データを生成してファイルに出力します。"""
@@ -79,9 +88,7 @@ class FountainFlowCLI:
         except NotImplementedError:
             logging.warning("Generate and output operation is not implemented.")
         except Exception:
-            logging.exception(
-                f"Failed to generate and output data for table '{table_name}'."
-            )
+            logging.exception("Operation Failed: generate and output.")
 
     def load_file(self, env, table_name, file_path):
         """ファイルをデータベースにロードします。"""
@@ -104,40 +111,53 @@ class FountainFlowCLI:
         except NotImplementedError:
             logging.warning("Load file operation is not implemented.")
         except Exception:
-            logging.exception(f"Failed to load file '{
+            logging.error(f"Failed to load file '{
                               file_path}' into table '{table_name}'.")
+            logging.exception("Operation Failed: generate and output.")
 
     def switch_env(self):
         """接続環境を切り替えます。"""
-        envs = list(self.db_config.keys())
-        questions = [
-            inquirer.List(
-                "action",
-                message="Please select the connection environment (database.yaml)",
-                choices=envs,
-            ),
-        ]
-        answers = inquirer.prompt(questions)
-        selected_env = answers["action"]
-        return selected_env
+        try:
+            envs = list(self.db_config.keys())
+            questions = [
+                inquirer.List(
+                    "action",
+                    message="Please select the connection environment (database.yaml)",
+                    choices=envs,
+                ),
+            ]
+            answers = inquirer.prompt(questions)
+            selected_env = answers["action"]
+            return selected_env
+        except Exception:
+            logging.exception("Operation Failed: switch env.")
 
     def switch_data_config(self):
         """データ設定を切り替えます。"""
-        data_config_dir = os.path.join(self.cdir, "../def")
-        files = [f for f in os.listdir(data_config_dir) if f.endswith(".yaml")]
-        if not files:
-            logging.error("No YAML files found in the /def directory.")
-            exit(1)
-        questions = [
-            inquirer.List(
-                "action", message="Please select the data config (/def)", choices=files
-            ),
-        ]
-        answers = inquirer.prompt(questions)
-        self.data_config_file = answers["action"]
-        self.data_config = load_config(
-            os.path.join(self.cdir, f"../def/{self.data_config_file}")
-        )
+        try:
+            data_config_dir = os.path.join(self.cdir, "../def")
+            files = [f for f in os.listdir(data_config_dir) if f.endswith(".yaml")]
+            if not files:
+                logging.error("No YAML files found in the /def directory.")
+                exit(1)
+            questions = [
+                inquirer.List(
+                    "action",
+                    message="Please select the data config (/def)",
+                    choices=files,
+                ),
+            ]
+            answers = inquirer.prompt(questions)
+            self.data_config_file = answers["action"]
+            self.data_config = load_config(
+                os.path.join(self.cdir, f"../def/{self.data_config_file}")
+            )
+            errors = validate_data_definition(self.data_config)
+            if errors:
+                for error in errors:
+                    logging.error(error)
+        except Exception:
+            logging.exception("Operation Failed: switch data config.")
 
 
 def main():

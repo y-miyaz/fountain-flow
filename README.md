@@ -85,7 +85,11 @@ database.yamlで定義した接続環境を選択します。
    redshift
    dynamodb
 ```
-
+```sh
+[?] Please select the data config (/def): 
+ > data_dynamodb.yaml
+   data.yaml
+```
 ### 処理選択メニュー
 
 実行したい処理を選択します。
@@ -96,6 +100,7 @@ database.yamlで定義した接続環境を選択します。
 | Generate Data & File Output            | データ生成とファイル出力を行います。       |
 | Load File       | 対象のテーブルに対してファイルをロードします。       |
 | Switch Env                    | 接続環境を切り替えます。       |
+| Switch Data Confg                    | データ定義を切り替えます。       |
 | Exit                 | CLIを終了します。        |
 
 ```sh
@@ -105,6 +110,7 @@ database.yamlで定義した接続環境を選択します。
    Generate Data & File Output
    Load File
    Switch Env
+   Switch Data Config
    Exit
 ```
 ### Truncate Table
@@ -212,9 +218,48 @@ Does the CSV file include headers? (y/N): y
 xxxx-xx-xx xx:xx:xx,xxx - INFO - Successfully load '/xxxx/xxxx/xxxx/xxxx/fountain-flow/data/20240809122933_products.csv' into 'products'.
 ```
 
+### Switch Env
+
+`database.yaml`で定義したDB定義の中から接続する環境を選択します。
+
+```sh
+[?] Please select the connection environment (database.yaml): 
+ > default
+   postgres
+   mysql
+   rds
+   redshift_serverless
+   redshift
+   dynamodb
+```
+### Switch Data Config
+
+`/def`配下のファイルからデータ生成で使用するデータ定義ファイルを選択します。
+```sh
+[?] Please select the data config (/def): 
+ > data_dynamodb.yaml
+   data.yaml
+```
+
+### Exit
+
+CLIを終了します。
+
+```sh
+[?] Please select an option (env=postgres, data_config=data.yaml): 
+   Truncate Table
+   Generate Data & Insert Records
+   Generate Data & File Output
+   Load File
+   Switch Env
+   Switch Data Config
+ > Exit
+
+xxxx-xx-xx xx:xx:xx,xxx - INFO - Exiting fountain-flow.
+```
 ### データ生成ルール(data.yaml)の生成
 
-fountain-flow ではデータ生成のためのデータ定義ファイル(data.yaml)の設定が必要です。定義ファイルは手動で作成するほか、create-defコマンドを使用することで、テーブルの定義から定義の雛形がdef/data.yaml として作成されます。
+fountain-flow ではデータ生成のためのデータ定義ファイル(`data.yaml`)の設定が必要です。定義ファイルは手動で作成するほか、create-defコマンドを使用することで、テーブルの定義から定義の雛形が`def/data.yaml`として作成されます。
 
 ```sh
 bin/fountain-flow create-def path/to/ddl1.sql path/to/ddl2.sql
@@ -242,7 +287,7 @@ bin/fountain-flow -help
 
 ### 概要
 
-database.yaml では`fountain-flow`の接続先のデータベースの設定を行います。
+`database.yaml` では`fountain-flow`の接続先のデータベースの設定を行います。
 
 ### 設定ファイルの項目
 

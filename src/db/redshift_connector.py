@@ -20,9 +20,9 @@ class RedshiftConnector(DBConnector):
                 "redshift-data", region_name=self.config["region"]
             )
             self.s3_client = session.client("s3", region_name=self.config["region"])
-        except Exception:
-            logging.exception("Failed to connect to Redshift database.")
-            raise
+        except Exception as e:
+            logging.error("Failed to connect to Redshift database.")
+            raise e
 
     def commit(self):
         pass
@@ -47,9 +47,9 @@ class RedshiftConnector(DBConnector):
             )
             self._check_status(response["Id"])
             logging.info(f"Table '{table_name}' has been truncated.")
-        except Exception:
-            logging.exception(f"Failed to truncate table '{table_name}'.")
-            raise
+        except Exception as e:
+            logging.error(f"Failed to truncate table '{table_name}'.")
+            raise e
 
     def insert_data(self, table_name, columns, data):
         try:
@@ -68,9 +68,9 @@ class RedshiftConnector(DBConnector):
                 Sql=sql,
             )
             self._check_status(response["Id"])
-        except Exception:
-            logging.exception(f"Failed to insert data into table '{table_name}'.")
-            raise
+        except Exception as e:
+            logging.error(f"Failed to insert data into table '{table_name}'.")
+            raise e
 
     def copy_data_from_csv(self, table_name, file_path, include_headers):
         try:
@@ -98,11 +98,9 @@ class RedshiftConnector(DBConnector):
             )
             self._check_status(response["Id"])
             logging.info(f"Successfully loaded {s3_uri} to {table_name}")
-        except Exception:
-            logging.exception(
-                f"Failed to copy data from CSV file to table '{table_name}'."
-            )
-            raise
+        except Exception as e:
+            logging.error(f"Failed to copy data from CSV file to table '{table_name}'.")
+            raise e
 
     def _check_status(self, statement_id):
         while True:
@@ -115,10 +113,10 @@ class RedshiftConnector(DBConnector):
                     return response
             elif status == "FAILED":
                 logging.error(f"Statement execution failed: {response['Error']}")
-                raise Exception(f"Statement execution failed: {response['Error']}")
+                raise
             elif status in ("SUBMITTED", "PICKED", "STARTED"):
                 logging.info(f"Waiting for statement {statement_id} to finish...")
                 time.sleep(self.check_interval)
             else:
                 logging.error(f"Unexpected statement status: {status}")
-                raise Exception(f"Unexpected statement status: {status}")
+                raise

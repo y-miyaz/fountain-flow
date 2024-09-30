@@ -40,9 +40,9 @@ class RedshiftServerlessConnector(DBConnector):
             )
             self._check_status(response["Id"])
             logging.info(f"Table '{table_name}' has been truncated.")
-        except Exception:
-            logging.exception(f"Failed to truncate table '{table_name}'.")
-            raise
+        except Exception as e:
+            logging.error(f"Failed to truncate table '{table_name}'.")
+            raise e
 
     def insert_data(self, table_name, columns, data):
         try:
@@ -67,9 +67,9 @@ class RedshiftServerlessConnector(DBConnector):
                 Parameters=parameters,
             )
             self._check_status(response["Id"])
-        except Exception:
-            logging.exception(f"Failed to insert data into table '{table_name}'.")
-            raise
+        except Exception as e:
+            logging.error(f"Failed to insert data into table '{table_name}'.")
+            raise e
 
     def copy_data_from_csv(self, table_name, file_path, include_headers):
         try:
@@ -96,11 +96,9 @@ class RedshiftServerlessConnector(DBConnector):
             )
             self._check_status(response["Id"])
             logging.info(f"Successfully loaded {s3_uri} to {table_name}")
-        except Exception:
-            logging.exception(
-                f"Failed to copy data from CSV file to table '{table_name}'."
-            )
-            raise
+        except Exception as e:
+            logging.error(f"Failed to copy data from CSV file to table '{table_name}'.")
+            raise e
 
     def _check_status(self, statement_id):
         while True:
@@ -111,11 +109,11 @@ class RedshiftServerlessConnector(DBConnector):
             elif status == "FAILED":
                 error_message = response.get("Error", "Unknown error")
                 logging.error(f"Statement execution failed: {error_message}")
-                raise Exception(f"Statement execution failed: {error_message}")
+                raise
             elif status in ("SUBMITTED", "PICKED", "STARTED"):
                 logging.info(f"Waiting for statement {
                              statement_id} to finish...")
                 time.sleep(self.check_interval)
             else:
                 logging.error(f"Unexpected statement status: {status}")
-                raise Exception(f"Unexpected statement status: {status}")
+                raise

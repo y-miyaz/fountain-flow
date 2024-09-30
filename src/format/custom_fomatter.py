@@ -11,6 +11,7 @@ def get_log_level(level_name):
 
 def setup_logging(level_name):
     class CustomFormatter(logging.Formatter):
+        # カラーコードの定義
         grey = "\x1b[38;21m"
         green = "\x1b[32;21m"
         yellow = "\x1b[33;21m"
@@ -18,26 +19,49 @@ def setup_logging(level_name):
         bold_red = "\x1b[31;1m"
         reset = "\x1b[0m"
 
-        FORMATS = {
-            logging.DEBUG: grey + "%(asctime)s - %(levelname)s - %(message)s" + reset,
-            logging.INFO: green + "%(asctime)s - %(levelname)s - %(message)s" + reset,
-            logging.WARNING: yellow
-            + "%(asctime)s - %(levelname)s - %(message)s"
-            + reset,
-            logging.ERROR: red + "%(asctime)s - %(levelname)s - %(message)s" + reset,
-            logging.CRITICAL: bold_red
-            + "%(asctime)s - %(levelname)s - %(message)s"
-            + reset,
-        }
+        def __init__(self):
+            super().__init__()
+            # レベルごとのフォーマットを定義
+            format_strings = {
+                logging.DEBUG: self.grey
+                + "%(asctime)s - %(levelname)s - %(message)s"
+                + self.reset,
+                logging.INFO: self.green
+                + "%(asctime)s - %(levelname)s - %(message)s"
+                + self.reset,
+                logging.WARNING: self.yellow
+                + "%(asctime)s - %(levelname)s - %(message)s"
+                + self.reset,
+                logging.ERROR: self.red
+                + "%(asctime)s - %(levelname)s - %(message)s"
+                + self.reset,
+                logging.CRITICAL: self.bold_red
+                + "%(asctime)s - %(levelname)s - %(message)s"
+                + self.reset,
+            }
+            self.formatters = {}
+            for level, fmt in format_strings.items():
+                # 各レベルのフォーマッタを作成
+                formatter = logging.Formatter(fmt)
+                # formatExceptionメソッドをカスタマイズ
+                formatter.formatException = self.formatException
+                self.formatters[level] = formatter
+
+        def formatException(self, ei):
+            import traceback
+
+            # 例外のメッセージ部分のみを取得
+            exception_only = traceback.format_exception_only(ei[0], ei[1])
+            return "".join(exception_only).strip()
 
         def format(self, record):
-            # ログフォーマットを設定
-            log_fmt = self.FORMATS.get(record.levelno)
-            formatter = logging.Formatter(log_fmt)
-            # メッセージをフォーマット
-            formatted = formatter.format(record)
-            # 例外情報を追加しない
-            return formatted
+            # 該当のログレベルのフォーマッタを取得
+            formatter = self.formatters.get(record.levelno)
+            if formatter is None:
+                # デフォルトのフォーマッタを使用
+                formatter = self.formatters[logging.INFO]
+            # レコードをフォーマット
+            return formatter.format(record)
 
     # ログハンドラの設定
     handler = logging.StreamHandler()
@@ -47,5 +71,5 @@ def setup_logging(level_name):
     logger = logging.getLogger()
     level = get_log_level(level_name)
     logger.setLevel(level)
-    logger.handlers.clear()  # 重複を避けるため既存のハンドラをクリア
+    logger.handlers.clear()  # 既存のハンドラをクリア
     logger.addHandler(handler)

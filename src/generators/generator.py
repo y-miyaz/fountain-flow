@@ -1,4 +1,3 @@
-import logging
 from abc import ABC, abstractmethod
 
 
@@ -37,5 +36,4 @@ class ValueGenerator(ABC):
                 f"Validation errors in '{self.table_name}.{self.column_name}':\n"
                 + "\n".join(errors)
             )
-            logging.error(error_message)
             raise ValueError(error_message)

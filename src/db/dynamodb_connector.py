@@ -23,9 +23,9 @@ class DynamoDBConnector(DBConnector):
                 "dynamodb", region_name=self.config["region"]
             )
             self.s3_client = session.client("s3", region_name=self.config["region"])
-        except Exception:
+        except Exception as e:
             logging.error("Failed to connect to DynamoDB.")
-            raise
+            raise e
 
     def commit(self):
         # boto3 DynamoDB resource does not require explicit close
@@ -96,9 +96,9 @@ class DynamoDBConnector(DBConnector):
             create_params = {k: v for k, v in create_params.items() if v is not None}
             return create_params
 
-        except ClientError:
+        except ClientError as e:
             logging.error(f"Failed to get table definition '{table_name}'.")
-            raise
+            raise e
 
     def drop_table(self, table_name):
         try:
@@ -112,9 +112,9 @@ class DynamoDBConnector(DBConnector):
                     self.is_dropped = True
             else:
                 logging.info(f"Table '{table_name}' does not exist.")
-        except ClientError:
+        except ClientError as e:
             logging.error(f"Failed to drop table '{table_name}'.")
-            raise
+            raise e
 
     def truncate_table(self, table_name):
         logging.info("fountain-flow does not implement truncate table for DynamoDB.")
@@ -152,13 +152,13 @@ class DynamoDBConnector(DBConnector):
             waiter.wait(TableName=table_name)
             logging.info(f"Table '{table_name}' successfully created.")
 
-        except Exception:
+        except Exception as e:
             logging.error(
                 f"Failed to copy data from JSON file to table '{table_name}'."
             )
             if self.is_dropped:
                 self._recreate_source_table()
-            raise
+            raise e
 
     def _recreate_source_table(self):
         try:
@@ -166,10 +166,10 @@ class DynamoDBConnector(DBConnector):
             table_arn = create_response["TableDescription"]["TableArn"]
             logging.info(f"Source table '{
                          self.create_params['TableName']}' recreated with ARN: {table_arn}")
-        except Exception:
+        except Exception as e:
             logging.error(f"Failed to recreate source table '{
                               self.create_params['TableName']}'.")
-            raise
+            raise e
 
     def _check_status(self, import_arn):
         while True:
@@ -179,13 +179,13 @@ class DynamoDBConnector(DBConnector):
                 return response.get("Records", response)
             elif status in ("FAILED", "CANCELLED"):
                 logging.error(f"Import failed: {response}")
-                raise Exception(f"Import failed: {response}")
+                raise
             elif status in ("IN_PROGRESS", "CANCELLING"):
                 logging.info(f"Waiting for import {import_arn} to finish...")
                 time.sleep(self.check_interval)
             else:
                 logging.error(f"Unexpected import status: {status}")
-                raise Exception(f"Unexpected import status: {status}")
+                raise
 
     def check_table_exists(self, table_name):
         try:
@@ -195,4 +195,4 @@ class DynamoDBConnector(DBConnector):
             if e.response["Error"]["Code"] == "ResourceNotFoundException":
                 return False
             else:
-                raise
+                raise e

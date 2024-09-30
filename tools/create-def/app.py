@@ -26,7 +26,7 @@ def main():
         # コマンドライン引数を取得（最初の引数はスクリプトのファイル名なので除外）
         file_pathes = sys.argv[1:]
         if not file_pathes:
-            raise ValueError('No file specified.')
+            raise e ValueError('No file specified.')
         table_names = []
         tables = []
         for file_path in file_pathes:
@@ -38,7 +38,7 @@ def main():
             else:
                 logging.error(
                     f"The table definition is duplicated: \ntable_name: {table_info['name']}\nfile_path: {file_path}")
-                raise ValueError()
+                raise e ValueError()
         create_data_definitions(tables)
         logging.info(
             'Create data definition successfully.\nfile_path: def/data.yaml')

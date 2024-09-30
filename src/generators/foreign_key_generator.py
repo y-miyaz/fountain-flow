@@ -15,11 +15,11 @@ class ForeignKeyGenerator:
             self.base_generator = base_generator(
                 table_name, column
             )  # 実際のデータ生成を行うジェネレータ
-        except Exception:
-            raise
+        except Exception as e:
+            raise e
 
     def generate(self):
         try:
             return self.base_generator.generate()
-        except Exception:
-            raise
+        except Exception as e:
+            raise e
