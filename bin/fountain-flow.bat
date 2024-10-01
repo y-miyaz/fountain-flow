@@ -1,40 +1,44 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal enabledelayedexpansion
 
 REM スクリプトが存在するディレクトリの絶対パスを取得
 set BASEDIR=%~dp0
 
-REM Function to create definitions
-:CREATE_DEF
-shift
-set ABS_PATHS=
-:LOOP
-if "%~1"=="" goto END_LOOP
-for %%i in ("%~1") do (
-    set ABS_PATHS=!ABS_PATHS! "%%~fi"
-)
-shift
-goto LOOP
-:END_LOOP
-python "%BASEDIR%..\tools\create-def\app.py" %ABS_PATHS%
-goto :EOF
-
-REM Function to launch CLI
-:CLI
-python "%BASEDIR%..\src\cli.py"
-goto :EOF
-
-REM Command line handling
-if "%1"=="create-def" (
-    call :CREATE_DEF %*
-) else if "%1"=="cli" (
-    call :CLI
-) else if "%1"=="-help" (
+REM コマンドライン引数の処理
+if "%1" == "create-def" (
+    shift
+    call :CreateDef %*
+    goto :eof
+) else if "%1" == "cli" (
+    call :Cli
+    goto :eof
+) else if "%1" == "-help" (
     echo Usage:
     echo   fountain-flow cli - Launch CLI.
     echo   fountain-flow create-def [ddl paths...] - Execute DDL scripts to create definitions
     echo   fountain-flow -help - Display this help message
+    goto :eof
 ) else (
     echo Error: Invalid command or arguments
     echo Try 'fountain-flow -help' for more information.
+    goto :eof
 )
+
+REM 関数の定義
+:CreateDef
+    set abs_paths=
+    for %%i in (%*) do (
+        REM 各相対パスを絶対パスに変換
+        for /f "delims=" %%a in ('powershell -command "[System.IO.Path]::GetFullPath('%%i')"') do (
+            set abs_paths=!abs_paths! %%a
+        )
+    )
+    REM 絶対パスをPythonスクリプトに渡す
+    python "%BASEDIR%..\tools\create-def\app.py" %abs_paths%
+    goto :eof
+
+:Cli
+    python "%BASEDIR%..\src\cli.py"
+    goto :eof
+
+endlocal
